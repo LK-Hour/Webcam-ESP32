@@ -1,0 +1,9 @@
+/build/
+/managed_components/
+/sdkconfig
+/sdkconfig.old
+/capture.jpg
+/capture_ffmpeg.jpg
+/tools/board_mac.txt
+__pycache__/
+*.pyc
