@@ -52,6 +52,23 @@ try {
     Write-Host "Building and flashing the webcam firmware on $port..."
     Push-Location $projectRoot
     try {
+        $cacheFile = Join-Path $projectRoot 'build\CMakeCache.txt'
+        if (Test-Path -LiteralPath $cacheFile -PathType Leaf) {
+            $cacheEntry = Get-Content -LiteralPath $cacheFile |
+                Where-Object { $_ -like 'CMAKE_HOME_DIRECTORY:INTERNAL=*' } |
+                Select-Object -First 1
+            if ($cacheEntry) {
+                $configuredProject = ($cacheEntry -split '=', 2)[1]
+                $currentProject = $projectRoot.Replace('\', '/')
+                if ($configuredProject -ne $currentProject) {
+                    Write-Host "Build files refer to $configuredProject. Cleaning generated build files for the new project path..."
+                    & $idfPython (Join-Path $idfRoot 'tools\idf.py') fullclean
+                    if ($LASTEXITCODE -ne 0) {
+                        throw 'Could not clean the stale build directory.'
+                    }
+                }
+            }
+        }
         & $idfPython (Join-Path $idfRoot 'tools\idf.py') -p $port flash
         if ($LASTEXITCODE -ne 0) {
             throw 'ESP-IDF could not build or flash the webcam firmware.'
